@@ -1,6 +1,16 @@
+import {
+  PublicationSortCriteria,
+  useExplorePublicationsQuery,
+} from "@/graphql/generated";
 import Head from "next/head";
 
 export default function Home() {
+  const { data, isLoading, error } = useExplorePublicationsQuery({
+    request: {
+      sortCriteria: PublicationSortCriteria.TopCollected,
+    },
+  });
+
   return (
     <>
       <Head>
