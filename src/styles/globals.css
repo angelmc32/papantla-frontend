@@ -9,11 +9,3 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
 }
-
-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 4rem;
-  min-height: 100vh;
-}
