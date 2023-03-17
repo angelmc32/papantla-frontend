@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAddress, useSDK } from "@thirdweb-dev/react";
-import { useAuthenticateMutation } from "../../graphql/generated";
-import generateChallenge from "./generateChallenge";
-import { setAccessToken } from "./helpers";
+import { useAuthenticateMutation } from "../graphql/generated";
+import generateChallenge from "../lib/auth/generateChallenge";
+import { setAccessToken } from "../lib/auth/helpers";
 
 export default function useLogin() {
   const address = useAddress();
