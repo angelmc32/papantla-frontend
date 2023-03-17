@@ -2,7 +2,9 @@ const STORAGE_KEY = "LH_STORAGE_KEY";
 
 // Simple function to say if the token is expired or not
 export function isTokenExpired(exp: number) {
-  if (!exp) return true;
+  if (!exp) {
+    return true;
+  }
 
   if (Date.now() >= exp * 1000) {
     return true;

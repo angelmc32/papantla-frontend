@@ -8,11 +8,11 @@ import useLogin from "@/lib/auth/useLogin";
 export default function Home() {
   const address = useAddress();
   const { mutate: requestLogin } = useLogin();
-  // const { data, isLoading, error } = useExplorePublicationsQuery({
-  //   request: {
-  //     sortCriteria: PublicationSortCriteria.TopCollected,
-  //   },
-  // });
+  const { data, isLoading, error } = useExplorePublicationsQuery({
+    request: {
+      sortCriteria: PublicationSortCriteria.TopCollected,
+    },
+  });
 
   return (
     <>

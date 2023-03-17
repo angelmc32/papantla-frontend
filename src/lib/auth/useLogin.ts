@@ -23,8 +23,6 @@ export default function useLogin() {
       },
     });
 
-    console.log("authenticated", authenticate);
-
     const { accessToken, refreshToken } = authenticate;
 
     setAccessToken(accessToken, refreshToken);
