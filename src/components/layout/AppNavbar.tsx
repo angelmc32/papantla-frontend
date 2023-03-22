@@ -9,10 +9,10 @@ import {
   Flex,
   Group,
   rem,
-  ScrollArea,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import Link from "next/link";
+import SignInButton from "../auth/SignInButton";
 
 const AppNavbar = () => {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
@@ -29,26 +29,17 @@ const AppNavbar = () => {
         >
           <Group>
             <Link className={classes.logoLink} href="/">
-              <span className={classes.icon}>🎪</span> circus
+              papantla <span className={classes.icon}>🪁</span>
             </Link>
           </Group>
           <Group className={classes.hiddenMobile}>
             <Link className={classes.link} href="/eventos">
-              Eventos
+              How it works
             </Link>
             <Link className={classes.link} href="/comunidades">
-              Comunidades
+              About Us
             </Link>
-            <Button className={classes.button} color="gray.0" variant="outline">
-              Ingresar
-            </Button>
-            <Button
-              className={classes.button}
-              color="secondary"
-              variant="filled"
-            >
-              Registro
-            </Button>
+            <SignInButton />
           </Group>
 
           <Burger
@@ -141,7 +132,7 @@ const useStyles = createStyles((theme) => ({
   icon: {
     fontSize: "28px",
     marginBottom: "6px",
-    marginRight: "6px",
+    marginLeft: "6px",
   },
 
   logoLink: {

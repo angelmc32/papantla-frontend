@@ -9,8 +9,8 @@ const AppFooter = () => {
   return (
     <Footer height={48} p="sm">
       <Flex justify="space-between" align="center" direction="row">
-        <Text size="sm">Lensplore © 2023</Text>
-        <Text size="sm">Creado por innvertir</Text>
+        <Text size="sm">Papantla © 2023</Text>
+        <Text size="sm">Creado por Frutero Club</Text>
         <Group position="apart">
           <IconBrandTwitter size={24} strokeWidth={0.5} color={"black"} />
           <IconBrandDiscord size={24} strokeWidth={0.5} color={"black"} />

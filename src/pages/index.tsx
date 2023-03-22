@@ -1,22 +1,25 @@
-import { useSelector, useDispatch } from "react-redux";
-import { ConnectWallet, useAddress } from "@thirdweb-dev/react";
-import type { RootState } from "../store/store";
-import { setDefaultProfile } from "../store/slices/lensSlice";
+import polybase from "../config/polybase";
+import { Auth } from "@polybase/auth";
+import { useAppSelector } from "../store/store";
 
 export default function Home() {
-  const profile = useSelector((state: RootState) => state.lens.profile);
-  const dispatch = useDispatch();
-  const address = useAddress();
+  const authState = useAppSelector((state) => state.polybaseAuth);
+
+  const createRecord = async () => {
+    const recordData = ["test-user-1", "User Name"];
+
+    const collectionReference = polybase.collection("User");
+
+    const res = await collectionReference.create(recordData);
+  };
 
   return (
     <>
       <h1>Hola mundo!</h1>
-      {!address ? (
-        <ConnectWallet />
+      {!authState.publicKey ? (
+        <p>Debes iniciar sesión</p>
       ) : (
-        <>
-          <h3>{`Conectado con ${address}`}</h3>
-        </>
+        <button onClick={createRecord}>Crear usuario test</button>
       )}
     </>
   );
