@@ -1,26 +1,20 @@
-import polybase from "../config/polybase";
-import { Auth } from "@polybase/auth";
-import { useAppSelector } from "../store/store";
+import { Container, createStyles } from "@mantine/core";
+import FlightSearchbar from "@/components/home/FlightSearchbar";
 
 export default function Home() {
-  const authState = useAppSelector((state) => state.polybaseAuth);
-
-  const createRecord = async () => {
-    const recordData = ["test-user-1", "User Name"];
-
-    const collectionReference = polybase.collection("User");
-
-    const res = await collectionReference.create(recordData);
-  };
+  const { classes } = useStyles();
 
   return (
-    <>
-      <h1>Hola mundo!</h1>
-      {!authState.publicKey ? (
-        <p>Debes iniciar sesión</p>
-      ) : (
-        <button onClick={createRecord}>Crear usuario test</button>
-      )}
-    </>
+    <Container className={classes.homeContainer} fluid={true}>
+      <FlightSearchbar />
+    </Container>
   );
 }
+
+const useStyles = createStyles((theme) => ({
+  homeContainer: {
+    display: "flex",
+    justifyContent: "center",
+    width: "100%",
+  },
+}));

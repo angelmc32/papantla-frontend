@@ -19,6 +19,6 @@ const globalStyles = {
     flexDirection: "column" as "column",
     marginTop: "56px",
     minHeight: "calc(100vh - 56px)",
-    padding: "4rem",
+    padding: "4rem 1rem",
   },
 };
