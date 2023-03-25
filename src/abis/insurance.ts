@@ -79,6 +79,63 @@ export const Insurance = [
     type: "event",
   },
   {
+    inputs: [
+      {
+        internalType: "uint32",
+        name: "_origin",
+        type: "uint32",
+      },
+      {
+        internalType: "bytes32",
+        name: "_sender",
+        type: "bytes32",
+      },
+      {
+        internalType: "bytes",
+        name: "_message",
+        type: "bytes",
+      },
+    ],
+    name: "handle",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "insuredEvent",
+        type: "string",
+      },
+      {
+        internalType: "address",
+        name: "insuredAddress",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "insuredAmount",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "fligthId",
+        type: "string",
+      },
+    ],
+    name: "issueInsurance",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "policyId",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     anonymous: false,
     inputs: [
       {
@@ -147,16 +204,16 @@ export const Insurance = [
     type: "event",
   },
   {
-    inputs: [],
-    name: "MAX_EVENT_DESCRIPTION_SIZE",
-    outputs: [
+    inputs: [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
+        internalType: "bytes32",
+        name: "policyId",
+        type: "bytes32",
       },
     ],
-    stateMutability: "view",
+    name: "submitClaim",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -170,29 +227,6 @@ export const Insurance = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint32",
-        name: "_origin",
-        type: "uint32",
-      },
-      {
-        internalType: "bytes32",
-        name: "_sender",
-        type: "bytes32",
-      },
-      {
-        internalType: "bytes",
-        name: "_message",
-        type: "bytes",
-      },
-    ],
-    name: "handle",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -254,40 +288,6 @@ export const Insurance = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "string",
-        name: "insuredEvent",
-        type: "string",
-      },
-      {
-        internalType: "address",
-        name: "insuredAddress",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "insuredAmount",
-        type: "uint256",
-      },
-      {
-        internalType: "string",
-        name: "fligthId",
-        type: "string",
-      },
-    ],
-    name: "issueInsurance",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "policyId",
-        type: "bytes32",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "lastMessage",
     outputs: [
@@ -314,16 +314,16 @@ export const Insurance = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "MAX_EVENT_DESCRIPTION_SIZE",
+    outputs: [
       {
-        internalType: "bytes32",
-        name: "policyId",
-        type: "bytes32",
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
-    name: "submitClaim",
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
   },
 ];
