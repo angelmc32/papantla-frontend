@@ -2,6 +2,8 @@ import { useCollection, usePolybase, useRecord } from "@polybase/react";
 import { useQuery } from "@tanstack/react-query";
 import { useIsAuthenticated } from "@polybase/react";
 import { useAuth } from "@polybase/react";
+import { createStyles, Table } from "@mantine/core";
+import { UserPoliciesTable } from "../components/home/UserPoliciesTable";
 
 const MyPolicies = () => {
   const polybase = usePolybase();
@@ -52,7 +54,27 @@ const MyPolicies = () => {
       <h2>My Insured Flights</h2>
       {isLoggedIn ? "Aquí van los vuelos" : "Not logged in"}
       {isLoadingUserPolicies && <p>Loading...</p>}
-      {userPolicies && userPolicies[0].data.id}
+      {/* {userPolicies && <UserPoliciesTableProps /> } userPolicies[0].data.id} */}
+      <UserPoliciesTable
+        data={[
+          {
+            flightNum: "YA60B",
+            departCode: "MEX",
+            arrivCode: "CUN",
+            insuranceCost: 5,
+            insuredAmount: 50,
+            policyStatus: "Active",
+          },
+          {
+            flightNum: "YB223",
+            departCode: "MEX",
+            arrivCode: "BOG",
+            insuranceCost: 5,
+            insuredAmount: 50,
+            policyStatus: "Claimed",
+          },
+        ]}
+      />
       {userPoliciesError && <p>Error loading policies</p>}
     </>
   );

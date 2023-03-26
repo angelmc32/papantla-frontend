@@ -21,7 +21,7 @@ export const oracleConnection = async () => {
 // 1
 export const execAssertTruth = async (flightId: string) => {
   const contract = await oracleConnection();
-  const { receipt } = await contract.call("assertTruth", "YA60B");
+  const { receipt } = await contract.call("assertTruth", flightId);
 
   console.log(receipt.blockHash);
   return receipt;
