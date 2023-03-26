@@ -61,7 +61,7 @@ const claimingInsurance = async (flightNum: string) => {
               // de insurance.sol
             }
           });
-        }, 120000);
+        }, 120500);
       }
     });
   } catch (error) {
