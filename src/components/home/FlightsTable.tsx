@@ -36,7 +36,7 @@ const FlightsTable = (props: PropsType) => {
     )
   );
 
-  if (!showFlightDetails)
+  if (!showFlightDetails) {
     return (
       <Table className={classes.table}>
         <thead>
@@ -50,13 +50,14 @@ const FlightsTable = (props: PropsType) => {
         <tbody>{rows}</tbody>
       </Table>
     );
-  else
+  } else {
     return (
       <FlighInsuranceForm
         selectedFlight={selectedFlight}
         setShowFlightDetails={setShowFlightDetails}
       />
     );
+  }
 };
 
 export default FlightsTable;

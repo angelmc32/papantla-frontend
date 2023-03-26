@@ -17,22 +17,22 @@ import {
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { AirportSchedule } from "./types";
+import { PolicyCollectionElement } from "./types";
 
 interface IProps extends PaperProps {
-  selectedFlight: AirportSchedule | null;
-  setShowFlightDetails: (active: boolean) => void;
+  selectedPolicy: PolicyCollectionElement;
+  setShowPolicyDetails: (active: boolean) => void;
 }
 
-const FlightInsuranceForm = (props: IProps) => {
+const UserPolicyClaim = (props: IProps) => {
   const polybase = usePolybase();
   const { state: authState } = useAuth();
-  const { selectedFlight, setShowFlightDetails } = props;
+  const { selectedPolicy, setShowPolicyDetails } = props;
   const { classes } = useStyles();
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
 
   const hideForm = () => {
-    setShowFlightDetails(false);
+    setShowPolicyDetails(false);
   };
 
   const onSubmitHandler = async (event: FormEvent) => {
@@ -40,8 +40,8 @@ const FlightInsuranceForm = (props: IProps) => {
     if (!authState || !authState.userId) {
       return null;
     }
-    if (!selectedFlight) return null;
-    const { arrival, departure, flight, status } = selectedFlight;
+    if (!selectedPolicy) return null;
+    const { arrival, departure, flight, status } = selectedPolicy;
     const policyId = uuidv4();
     const recordData = [
       policyId,
@@ -59,7 +59,7 @@ const FlightInsuranceForm = (props: IProps) => {
     const collectionReference = polybase.collection("Policy");
 
     const res = await collectionReference.create(recordData);
-    setShowFlightDetails(false);
+    setShowPolicyDetails(false);
   };
 
   return (
@@ -79,7 +79,7 @@ const FlightInsuranceForm = (props: IProps) => {
           Back
         </div>
         <Text size="lg" weight={500}>
-          Buy Insurance for flight {selectedFlight?.flight.iataNumber}
+          Buy Insurance for flight {selectedPolicy?.flight.iataNumber}
         </Text>
       </div>
 
@@ -94,8 +94,8 @@ const FlightInsuranceForm = (props: IProps) => {
               onChange={() => null}
               radius="md"
               value={
-                selectedFlight
-                  ? new Date(selectedFlight?.departure.scheduledTime)
+                selectedPolicy
+                  ? new Date(selectedPolicy?.departure.scheduledTime)
                   : new Date()
               }
             />
@@ -103,7 +103,7 @@ const FlightInsuranceForm = (props: IProps) => {
               label="Flight Number"
               className={classes.styledInput}
               onChange={() => null}
-              value={selectedFlight?.flight.iataNumber}
+              value={selectedPolicy?.flight.iataNumber}
               radius="md"
             />
           </Group>
@@ -112,14 +112,14 @@ const FlightInsuranceForm = (props: IProps) => {
               className={classes.styledInput}
               label="Departing from"
               onChange={() => null}
-              value={selectedFlight?.departure.iataCode}
+              value={selectedPolicy?.departure.iataCode}
               radius="md"
             />
             <TextInput
               className={classes.styledInput}
               label="Arriving to"
               onChange={() => null}
-              value={selectedFlight?.arrival.iataCode}
+              value={selectedPolicy?.arrival.iataCode}
               radius="md"
             />
           </Group>
@@ -162,7 +162,7 @@ const FlightInsuranceForm = (props: IProps) => {
   );
 };
 
-export default FlightInsuranceForm;
+export default UserPolicyClaim;
 
 const useStyles = createStyles((theme) => ({
   confirmationContainer: {
