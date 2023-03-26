@@ -15,7 +15,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const queryClient = new QueryClient();
 
   return (
-    <ThirdwebProvider activeChain="polygon">
+    <ThirdwebProvider activeChain="mumbai">
       <PolybaseProvider polybase={polybase}>
         <AuthProvider auth={auth} polybase={polybase}>
           <Provider store={store}>
