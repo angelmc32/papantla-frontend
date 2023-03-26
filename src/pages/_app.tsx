@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThirdwebProvider } from "@thirdweb-dev/react";
 import { AuthProvider, PolybaseProvider } from "@polybase/react";
 import { MantineProvider } from "@mantine/core";
+import { Notifications } from "@mantine/notifications";
 import { circusTheme } from "@/styles/theme";
 import { store } from "../store/store";
 import Layout from "@/components/layout/Layout";
@@ -35,6 +36,7 @@ export default function App({ Component, pageProps }: AppProps) {
                   <link rel="icon" href="/favicon.ico" />
                 </Head>
                 <Layout>
+                  <Notifications />
                   <Component {...pageProps} />
                 </Layout>
               </MantineProvider>

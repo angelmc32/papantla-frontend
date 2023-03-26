@@ -1,6 +1,8 @@
 import { FormEvent, useState } from "react";
+import { useRouter } from "next/router";
 import { ethers } from "ethers";
 import { useAuth, usePolybase } from "@polybase/react";
+import ShortUniqueId from "short-unique-id";
 import { v4 as uuidv4 } from "uuid";
 import {
   ActionIcon,
@@ -9,14 +11,16 @@ import {
   createStyles,
   Divider,
   Group,
-  TextInput,
-  Text,
+  LoadingOverlay,
   Paper,
   PaperProps,
+  Text,
+  TextInput,
   Stack,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
+import { IconArrowLeft, IconCheck, IconX } from "@tabler/icons-react";
 import { MUMBAI_INSURANCE, MUMBAI_USDC } from "../../abis/contract.address";
 import { Insurance } from "@/abis/insurance";
 import { ERC20_ABI } from "@/abis/ERC20_ABI";
@@ -28,6 +32,8 @@ interface IProps extends PaperProps {
 }
 
 const FlightInsuranceForm = (props: IProps) => {
+  const router = useRouter();
+  const uid = new ShortUniqueId({ length: 10 });
   const ethereum = (window as any).ethereum;
   const polybase = usePolybase();
   const provider = new ethers.providers.Web3Provider(ethereum);
@@ -35,6 +41,7 @@ const FlightInsuranceForm = (props: IProps) => {
   const { selectedFlight, setShowFlightDetails } = props;
   const { classes } = useStyles();
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const hideForm = () => {
     setShowFlightDetails(false);
@@ -42,6 +49,7 @@ const FlightInsuranceForm = (props: IProps) => {
 
   const onSubmitHandler = async (event: FormEvent) => {
     event.preventDefault();
+    setIsLoading(true);
     if (!authState || !authState.userId) {
       return null;
     }
@@ -56,7 +64,7 @@ const FlightInsuranceForm = (props: IProps) => {
     );
     if (!selectedFlight) return null;
     const { arrival, departure, flight, status } = selectedFlight;
-    const policyId = uuidv4();
+    const policyId = uid();
     const recordData = [
       policyId,
       arrival.iataCode,
@@ -66,27 +74,61 @@ const FlightInsuranceForm = (props: IProps) => {
       status,
       5,
       50,
-      "active",
+      "inactive",
       authState.userId,
     ];
 
     const collectionReference = polybase.collection("Policy");
+    try {
+      notifications.show({
+        autoClose: 7500,
+        title: "Creating Policy draft",
+        color: "blue",
+        message: "You will have to sign several transactions...",
+      });
+      const res = await collectionReference.create(recordData);
+      console.log(res);
 
-    const res = await collectionReference.create(recordData);
-    setShowFlightDetails(false);
-    console.log(res);
+      const tx = await insuranceContract.issueInsurance(
+        flight.iataNumber,
+        authState.userId,
+        5000000,
+        policyId
+      );
+      console.log(tx.hash);
+      let updatedPolicyStatus = "active";
+      if (!tx.hash) {
+        updatedPolicyStatus = "draft";
+      }
+      const resUpdate = await collectionReference
+        .record(policyId)
+        .call("activatePolicy", [updatedPolicyStatus, tx.hash]);
+      console.log(resUpdate);
 
-    const tx = await insuranceContract.issueInsurance(
-      flight.iataNumber,
-      authState.userId,
-      5000000,
-      policyId
-    );
-    console.log(tx.hash);
-    const resUpdate = await collectionReference
-      .record(policyId)
-      .call("setTxHash", [tx.hash]);
-    console.log(resUpdate);
+      notifications.show({
+        autoClose: 5000,
+        title: "Policy created and active",
+        color: "teal",
+        icon: <IconCheck size="1.1rem" />,
+        message:
+          "Your Policy has been created successfully. $5.00 USDC has been charged to your USDC balance",
+      });
+      setShowFlightDetails(false);
+      setIsLoading(false);
+      router.push("/user-policies");
+    } catch (error) {
+      console.log(error);
+      notifications.show({
+        autoClose: 5000,
+        title: "Error while activating the Policy",
+        color: "red",
+        icon: <IconX size="1.1rem" />,
+        message:
+          "We were unable to activate the Policy. You can try again later.",
+      });
+      setShowFlightDetails(false);
+      setIsLoading(false);
+    }
   };
 
   const approveERC20 = async (event: FormEvent) => {
@@ -126,6 +168,7 @@ const FlightInsuranceForm = (props: IProps) => {
       <Divider my="xl" />
 
       <form onSubmit={(event: FormEvent) => onSubmitHandler(event)}>
+        <LoadingOverlay visible={isLoading} overlayBlur={2} />
         <Stack>
           <Group className={classes.inputsContainer}>
             <DateInput
@@ -198,10 +241,11 @@ const FlightInsuranceForm = (props: IProps) => {
           </Button>
         </Group>
       </form>
-
-      <Button color="secondary" onClick={approveERC20} mb="1rem" radius="sm">
-        Approve USDC
-      </Button>
+      <Group className={classes.approveBtnContainer}>
+        <Button color="secondary" onClick={approveERC20} mb="1rem" radius="sm">
+          Approve USDC
+        </Button>
+      </Group>
     </Paper>
   );
 };
@@ -209,6 +253,11 @@ const FlightInsuranceForm = (props: IProps) => {
 export default FlightInsuranceForm;
 
 const useStyles = createStyles((theme) => ({
+  approveBtnContainer: {
+    display: "flex",
+    justifyContent: "center",
+    width: "100%",
+  },
   confirmationContainer: {
     alignItems: "center",
     display: "flex",

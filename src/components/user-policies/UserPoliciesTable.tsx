@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { ethers } from "ethers";
 import { usePolybase } from "@polybase/react";
-import { createStyles, Table, ScrollArea, rem, Button } from "@mantine/core";
+import {
+  Button,
+  createStyles,
+  LoadingOverlay,
+  rem,
+  ScrollArea,
+  Table,
+} from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import {
   execAssertTruth,
   settleAndGetAssertionResult,
@@ -10,30 +18,10 @@ import {
 import { PolicyCollectionElement } from "./types";
 import { MUMBAI_INSURANCE } from "../../abis/contract.address";
 import { Insurance } from "@/abis/insurance";
-import { getRPCErrorMessage } from "@/utils/ErrorHandlingRPC";
+import { IconX } from "@tabler/icons-react";
 
 type PropsType = {
   userPolicies: PolicyCollectionElement[];
-};
-
-const claimingInsurance = async (flightNum: string) => {
-  try {
-    await execAssertTruth(flightNum).then((result) => {
-      if (result) {
-        setTimeout(async () => {
-          await settleAndGetAssertionResult().then(async (receipt) => {
-            if (receipt) {
-              await execGetAssertionResult();
-              // si esta funcion se resuelve se llama a handle y luego submitClaim
-              // de insurance.sol
-            }
-          });
-        }, 120500);
-      }
-    });
-  } catch (error) {
-    console.log("[ERROR !!] ", error);
-  }
 };
 
 const UserPoliciesTable = (props: PropsType) => {
@@ -41,9 +29,74 @@ const UserPoliciesTable = (props: PropsType) => {
   const provider = new ethers.providers.Web3Provider(ethereum);
   const polybase = usePolybase();
   const { classes, cx } = useStyles();
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const collectionReference = polybase.collection("Policy");
+
+  const claimingInsurance = async (flightNum: string, policyId: string) => {
+    setIsLoading(true);
+    notifications.show({
+      autoClose: false,
+      title: "Claiming Policy insurance",
+      color: "blue",
+      message:
+        "We will take a couple of minutes to verify your flight status. Please be patient 🤓",
+    });
+    try {
+      await execAssertTruth(flightNum).then((result) => {
+        notifications.show({
+          autoClose: 7500,
+          title: "Requesting flight data to oracle",
+          color: "blue",
+          message:
+            "Our oracle will provide us with the flight data to update your on-chain policy",
+        });
+        if (result) {
+          setTimeout(async () => {
+            await settleAndGetAssertionResult().then(async (receipt) => {
+              notifications.show({
+                autoClose: 7500,
+                title: "Oracle is settling requested data",
+                color: "blue",
+                message: "Almost there!",
+              });
+              const resUpdate = await collectionReference
+                .record(policyId)
+                .call("setPolicyStatus", ["claimed"]);
+
+              if (receipt) {
+                await execGetAssertionResult();
+                notifications.show({
+                  autoClose: 7500,
+                  title: "Flight data is on-chain",
+                  color: "blue",
+                  message:
+                    "You can now validate your claim. If your flight was cancelled, you will receive your funds after validating.",
+                });
+                // si esta funcion se resuelve se llama a handle y luego submitClaim
+                // de insurance.sol
+              }
+
+              setIsLoading(false);
+            });
+          }, 120500);
+        }
+      });
+    } catch (error: any) {
+      console.log("[ERROR !!] ", error);
+      notifications.show({
+        autoClose: 7500,
+        title: "An error occurred",
+        color: "red",
+        icon: <IconX size="1.1rem" />,
+        message: error.reason || "Please try again later 🫣",
+      });
+      setIsLoading(false);
+    }
+  };
 
   const submitClaim = async (policyId: string) => {
+    setIsLoading(true);
     const parsedPolicyId = ethers.utils.formatBytes32String(policyId);
     const accounts = await ethereum.request({
       method: "eth_requestAccounts",
@@ -55,59 +108,88 @@ const UserPoliciesTable = (props: PropsType) => {
       signer
     );
 
-    const collectionReference = polybase.collection("Policy");
     try {
       const tx = await insuranceContract.submitClaim(parsedPolicyId);
       console.log(tx);
       console.log(tx.hash);
       const resUpdate = await collectionReference
         .record(policyId)
-        .call("setPolicyStatus", ["claiming"]);
+        .call("setPolicyStatus", ["validated"]);
       console.log(resUpdate);
-    } catch (error) {
+      notifications.show({
+        autoClose: 7500,
+        title: "The Policy has been validated",
+        color: "blue",
+        message:
+          "If your flight was cancelled, you will receive your funds automatically.",
+      });
+      setIsLoading(false);
+    } catch (error: any) {
       console.log(error);
-      const errorMsg = getRPCErrorMessage(error);
-      console.log(errorMsg);
+      notifications.show({
+        autoClose: 7500,
+        title: "An error occurred",
+        color: "red",
+        icon: <IconX size="1.1rem" />,
+        message: error.reason || "Please try again later 🫣",
+      });
+      setIsLoading(false);
     }
   };
 
-  const rows = props.userPolicies.map((row) => (
-    <tr key={row.data.id}>
-      <td>{row.data.flightIataNumber}</td>
-      <td>{row.data.departureIataCode}</td>
-      <td>{row.data.arrivalIataCode}</td>
-      <td>${row.data.insuranceCost}.00</td>
-      <td>${row.data.insuredAmount}.00</td>
-      <td>{row.data.txHash ? row.data.policyStatus : "Not insured"}</td>
-      <td>
-        <Button
-          fullWidth
-          className={classes.button}
-          disabled={row.data.policyStatus.toUpperCase() === "claimed"}
-          onClick={() => {
-            console.log("Claiming...", row.data.flightIataNumber);
-            claimingInsurance(row.data.flightIataNumber);
-          }}
-        >
-          Claim
-        </Button>
-      </td>
-      <td>
-        <Button
-          fullWidth
-          color="orange"
-          className={classes.button}
-          disabled={row.data.policyStatus.toUpperCase() === "claimed"}
-          onClick={() => {
-            console.log("Submitting claim for...", row.data.flightIataNumber);
-            submitClaim(row.data.id);
-          }}
-        >
-          Validate
-        </Button>
-      </td>
-    </tr>
-  ));
+  const rows = props.userPolicies.map((row) => {
+    if (row.data.id.length > 16) return null;
+    return (
+      <tr key={row.data.id}>
+        <td className={classes.tableCell}>
+          {row.data.departureDateTime.substring(0, 10)}
+        </td>
+        <td className={classes.tableCell}>{row.data.flightIataNumber}</td>
+        <td className={classes.tableCell}>{row.data.departureIataCode}</td>
+        <td className={classes.tableCell}>{row.data.arrivalIataCode}</td>
+        <td className={classes.tableCell}>${row.data.insuranceCost}.00</td>
+        <td className={classes.tableCell}>${row.data.insuredAmount}.00</td>
+        <td className={classes.tableCell}>
+          {row.data.txHash ? row.data.policyStatus : "Not insured"}
+        </td>
+        <td className={classes.tableCell}>
+          <Button
+            fullWidth
+            className={classes.button}
+            disabled={
+              row.data.policyStatus.toLowerCase() === "claimed" ||
+              row.data.policyStatus.toLowerCase() === "validated"
+            }
+            onClick={() => {
+              console.log("Claiming...", row.data.flightIataNumber);
+              claimingInsurance(row.data.flightIataNumber, row.data.id);
+            }}
+          >
+            {row.data.policyStatus.toLowerCase() === "claimed" ||
+            row.data.policyStatus.toLowerCase() === "validated"
+              ? "Unavailable"
+              : "Claim"}
+          </Button>
+        </td>
+        <td className={classes.tableCell}>
+          <Button
+            fullWidth
+            color="orange"
+            className={classes.button}
+            disabled={row.data.policyStatus.toLowerCase() !== "claimed"}
+            onClick={() => {
+              console.log("Submitting claim for...", row.data.flightIataNumber);
+              submitClaim(row.data.id);
+            }}
+          >
+            {row.data.policyStatus.toLowerCase() !== "claimed"
+              ? "Unavailable"
+              : "Validate"}
+          </Button>
+        </td>
+      </tr>
+    );
+  });
 
   return (
     <ScrollArea
@@ -116,16 +198,18 @@ const UserPoliciesTable = (props: PropsType) => {
       onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
     >
       <Table px="2rem" miw={700}>
+        <LoadingOverlay visible={isLoading} />
         <thead className={cx(classes.header, { [classes.scrolled]: scrolled })}>
           <tr>
-            <th>Flight Number</th>
-            <th>Departure Code</th>
-            <th>Arrival Code</th>
-            <th>Insurance Cost</th>
-            <th>Insured Amount</th>
-            <th>Policy Status</th>
-            <th>Action</th>
-            <th>Validate</th>
+            <th className={classes.tableCell}>Date</th>
+            <th className={classes.tableCell}>Flight #</th>
+            <th className={classes.tableCell}>Departure</th>
+            <th className={classes.tableCell}>Arrival</th>
+            <th className={classes.tableCell}>Insurance Cost</th>
+            <th className={classes.tableCell}>Insured Amount</th>
+            <th className={classes.tableCell}>Policy Status</th>
+            <th className={classes.tableCell}>Action</th>
+            <th className={classes.tableCell}>Validate Claim</th>
           </tr>
         </thead>
         <tbody>{rows}</tbody>
@@ -160,6 +244,10 @@ const useStyles = createStyles((theme) => ({
 
   scrolled: {
     boxShadow: theme.shadows.sm,
+  },
+
+  tableCell: {
+    textAlign: "center",
   },
 
   button: {
