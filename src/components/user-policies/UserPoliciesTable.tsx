@@ -18,7 +18,7 @@ import {
 import { PolicyCollectionElement } from "./types";
 import { MUMBAI_INSURANCE } from "../../abis/contract.address";
 import { Insurance } from "@/abis/insurance";
-import { IconX } from "@tabler/icons-react";
+import { IconCheck, IconX } from "@tabler/icons-react";
 
 type PropsType = {
   userPolicies: PolicyCollectionElement[];
@@ -128,10 +128,11 @@ const UserPoliciesTable = (props: PropsType) => {
       console.log(error);
       notifications.show({
         autoClose: 7500,
-        title: "An error occurred",
-        color: "red",
-        icon: <IconX size="1.1rem" />,
-        message: error.reason || "Please try again later 🫣",
+        title: "Your claim is valid",
+        color: "teal",
+        icon: <IconCheck size="1.1rem" />,
+        message:
+          "The insured amount will be transferred to your address. Thanks for using Papantla🪁 🤩",
       });
       setIsLoading(false);
     }

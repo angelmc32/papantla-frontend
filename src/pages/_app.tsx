@@ -18,7 +18,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <ThirdwebProvider activeChain="mumbai">
       <PolybaseProvider polybase={polybase}>
-        <AuthProvider auth={auth} polybase={polybase}>
+        <AuthProvider auth={auth as any} polybase={polybase}>
           <Provider store={store}>
             <QueryClientProvider client={queryClient}>
               <MantineProvider
