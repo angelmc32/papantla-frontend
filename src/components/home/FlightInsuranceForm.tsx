@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { usePolybase } from "@polybase/react";
+import { useAuth, usePolybase } from "@polybase/react";
 import { v4 as uuidv4 } from "uuid";
 import {
   ActionIcon,
@@ -26,6 +26,7 @@ interface PropsType extends PaperProps {
 
 const FlightInsuranceForm = (props: PropsType) => {
   const polybase = usePolybase();
+  const { state: authState } = useAuth();
   const { selectedFlight, setShowFlightDetails } = props;
   const { classes } = useStyles();
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
@@ -36,6 +37,9 @@ const FlightInsuranceForm = (props: PropsType) => {
 
   const onSubmitHandler = async (event: FormEvent) => {
     event.preventDefault();
+    if (!authState || !authState.userId) {
+      return null;
+    }
     if (!selectedFlight) return null;
     const { arrival, departure, flight, status } = selectedFlight;
     const policyId = uuidv4();
@@ -49,6 +53,7 @@ const FlightInsuranceForm = (props: PropsType) => {
       5,
       50,
       "active",
+      authState.userId,
     ];
 
     const collectionReference = polybase.collection("Policy");

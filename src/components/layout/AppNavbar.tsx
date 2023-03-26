@@ -1,3 +1,4 @@
+import { useIsAuthenticated } from "@polybase/react";
 import {
   Box,
   Burger,
@@ -15,10 +16,10 @@ import Link from "next/link";
 import SignInButton from "../auth/SignInButton";
 
 const AppNavbar = () => {
+  const [isLoggedIn, loading] = useIsAuthenticated();
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] =
     useDisclosure(false);
   const { classes, theme } = useStyles();
-
   return (
     <Box>
       <Header height={56}>
@@ -33,12 +34,17 @@ const AppNavbar = () => {
             </Link>
           </Group>
           <Group className={classes.hiddenMobile}>
-            <Link className={classes.link} href="/eventos">
+            <Link className={classes.link} href="/how-it-works">
               How it works
             </Link>
-            <Link className={classes.link} href="/comunidades">
+            <Link className={classes.link} href="/about">
               About Us
             </Link>
+            {isLoggedIn && (
+              <Link className={classes.link} href="/user-policies">
+                My Policies
+              </Link>
+            )}
             <SignInButton />
           </Group>
 
