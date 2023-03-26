@@ -32,6 +32,13 @@ const getFlightByNumber = async (flightNumber: string) => {
   return response.data;
 };
 
+const getAirportCancelledFlights = async () => {
+  const response = await axios.get(
+    `https://aviation-edge.com/v2/public/timetable?key=${process.env.NEXT_PUBLIC_AVIATION_API_KEY}&iataCode=MEX&status=scheduled&status=cancelled&limit=30`
+  );
+  return response.data;
+};
+
 const getAirportSchedule = async () => {
   const response = await axios.get(
     `https://aviation-edge.com/v2/public/timetable?key=${process.env.NEXT_PUBLIC_AVIATION_API_KEY}&iataCode=MEX&status=scheduled&type=departure&limit=30`
@@ -43,6 +50,7 @@ const FlightSearchbar = (props: TextInputProps) => {
   const { classes } = useStyles();
   const [value, setValue] = useState<Date | null>(null);
   const [flightNumber, setFlightNumber] = useState<string>("");
+  const [flights, setFlights] = useState<any>(null);
 
   const {
     data: airportSchedule,
@@ -66,12 +74,29 @@ const FlightSearchbar = (props: TextInputProps) => {
     enabled: false,
   });
 
+  const {
+    data: cancelledFlights,
+    isLoading: isLoadingCancelledFlights,
+    refetch: refetchCancelledFlights,
+  } = useQuery<any>({
+    queryKey: ["cancelled-flights"],
+    queryFn: () => getAirportCancelledFlights(),
+    refetchOnWindowFocus: false,
+    enabled: false,
+  });
+
   const onClickHandler = async (event: MouseEvent) => {
     const res = await refetchflightData();
   };
 
   const handleAirportScheduleQuery = async () => {
     const res = await refetchAirportSchedule();
+    setFlights(res.data);
+  };
+
+  const handleCancelledAirportFlightsQuery = async () => {
+    const res = await refetchCancelledFlights();
+    setFlights(res.data);
   };
 
   const handleFlightQuery = async () => {
@@ -158,17 +183,30 @@ const FlightSearchbar = (props: TextInputProps) => {
       </Tabs.Panel>
 
       <Tabs.Panel className={classes.tabContent} value="lucky" pt="xl">
-        <Button
-          className={classes.searchButton}
-          color="secondary"
-          onClick={handleAirportScheduleQuery}
-          mb="2rem"
-        >
-          Search
-        </Button>
-        {airportSchedule && (
+        <div className={classes.buttonContainer}>
+          <Button
+            className={classes.searchButton}
+            color="secondary"
+            onClick={handleAirportScheduleQuery}
+            my="1rem"
+            mx="2rem"
+          >
+            Search scheduled
+          </Button>
+          <Button
+            className={classes.searchButton}
+            color="secondary"
+            onClick={handleCancelledAirportFlightsQuery}
+            variant="outline"
+            my="1rem"
+            mx="2rem"
+          >
+            Search cancelled
+          </Button>
+        </div>
+        {flights && (
           <div className={classes.tableContainer}>
-            <FlightsTable airportFlightsSchedule={airportSchedule} />
+            <FlightsTable airportFlightsSchedule={flights} />
           </div>
         )}
       </Tabs.Panel>
