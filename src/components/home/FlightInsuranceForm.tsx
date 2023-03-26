@@ -1,4 +1,5 @@
 import { FormEvent, useState } from "react";
+import { ethers } from "ethers";
 import { useAuth, usePolybase } from "@polybase/react";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -12,11 +13,13 @@ import {
   Text,
   Paper,
   PaperProps,
-  Space,
   Stack,
 } from "@mantine/core";
 import { DateInput } from "@mantine/dates";
 import { IconArrowLeft } from "@tabler/icons-react";
+import { MUMBAI_INSURANCE, MUMBAI_USDC } from "../../abis/contract.address";
+import { Insurance } from "@/abis/insurance";
+import { ERC20_ABI } from "@/abis/ERC20_ABI";
 import { AirportSchedule } from "./types";
 
 interface IProps extends PaperProps {
@@ -25,7 +28,9 @@ interface IProps extends PaperProps {
 }
 
 const FlightInsuranceForm = (props: IProps) => {
+  const ethereum = (window as any).ethereum;
   const polybase = usePolybase();
+  const provider = new ethers.providers.Web3Provider(ethereum);
   const { state: authState } = useAuth();
   const { selectedFlight, setShowFlightDetails } = props;
   const { classes } = useStyles();
@@ -40,6 +45,15 @@ const FlightInsuranceForm = (props: IProps) => {
     if (!authState || !authState.userId) {
       return null;
     }
+    const accounts = await ethereum.request({
+      method: "eth_requestAccounts",
+    });
+    const signer = provider.getSigner(accounts[0]);
+    const insuranceContract = new ethers.Contract(
+      MUMBAI_INSURANCE,
+      Insurance,
+      signer
+    );
     if (!selectedFlight) return null;
     const { arrival, departure, flight, status } = selectedFlight;
     const policyId = uuidv4();
@@ -60,6 +74,32 @@ const FlightInsuranceForm = (props: IProps) => {
 
     const res = await collectionReference.create(recordData);
     setShowFlightDetails(false);
+    console.log(res);
+
+    const tx = await insuranceContract.issueInsurance(
+      flight.iataNumber,
+      authState.userId,
+      5000000,
+      policyId
+    );
+    console.log(tx.hash);
+    const resUpdate = await collectionReference
+      .record(policyId)
+      .call("setTxHash", [tx.hash]);
+    console.log(resUpdate);
+  };
+
+  const approveERC20 = async (event: FormEvent) => {
+    event.preventDefault();
+    const accounts = await ethereum.request({
+      method: "eth_requestAccounts",
+    });
+    const signer = provider.getSigner(accounts[0]);
+    const USDCContract = new ethers.Contract(MUMBAI_USDC, ERC20_ABI, signer);
+    const approveHash = await USDCContract.approve(MUMBAI_INSURANCE, 50, {
+      gasLimit: 320000,
+    });
+    console.log(approveHash);
   };
 
   return (
@@ -158,6 +198,10 @@ const FlightInsuranceForm = (props: IProps) => {
           </Button>
         </Group>
       </form>
+
+      <Button color="secondary" onClick={approveERC20} mb="1rem" radius="sm">
+        Approve USDC
+      </Button>
     </Paper>
   );
 };
