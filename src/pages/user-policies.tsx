@@ -9,21 +9,7 @@ const MyPolicies = () => {
   const polybase = usePolybase();
   const { state: authState, loading: loadingAuthState } = useAuth();
   const [isLoggedIn, loadingIsLoggedIn] = useIsAuthenticated();
-  // const {
-  //   data: userPolicy,
-  //   error: userPolicyError,
-  //   loading: loadingPolicy,
-  // } = useRecord(
-  //   polybase.collection("Policy").record("1d7271ee-331e-417e-80ca-4223fe294e6e")
-  // );
-  // const {
-  //   data: userPolicies,
-  //   error: userPoliciesError,
-  //   loading: loadingPolicies,
-  // } = useCollection(polybase.collection("Policy"));
-  // console.log(userPolicies);
   const collectionReference = polybase.collection("Policy");
-  // console.log(authState);
 
   const listRecordsWithFilter = async () => {
     if (!authState || !authState.userId) {

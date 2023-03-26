@@ -79,7 +79,7 @@ const UserPoliciesTable = (props: PropsType) => {
 
               setIsLoading(false);
             });
-          }, 120500);
+          }, 180500);
         }
       });
     } catch (error: any) {
@@ -156,17 +156,13 @@ const UserPoliciesTable = (props: PropsType) => {
           <Button
             fullWidth
             className={classes.button}
-            disabled={
-              row.data.policyStatus.toLowerCase() === "claimed" ||
-              row.data.policyStatus.toLowerCase() === "validated"
-            }
+            disabled={row.data.policyStatus.toLowerCase() !== "active"}
             onClick={() => {
               console.log("Claiming...", row.data.flightIataNumber);
               claimingInsurance(row.data.flightIataNumber, row.data.id);
             }}
           >
-            {row.data.policyStatus.toLowerCase() === "claimed" ||
-            row.data.policyStatus.toLowerCase() === "validated"
+            {row.data.policyStatus.toLowerCase() !== "active"
               ? "Unavailable"
               : "Claim"}
           </Button>
@@ -193,7 +189,7 @@ const UserPoliciesTable = (props: PropsType) => {
 
   return (
     <ScrollArea
-      h="50%"
+      h="100%"
       mt="2rem"
       onScrollPositionChange={({ y }) => setScrolled(y !== 0)}
     >

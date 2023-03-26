@@ -49,10 +49,18 @@ const FlightInsuranceForm = (props: IProps) => {
 
   const onSubmitHandler = async (event: FormEvent) => {
     event.preventDefault();
-    setIsLoading(true);
     if (!authState || !authState.userId) {
+      notifications.show({
+        autoClose: 7500,
+        title: "You must log in",
+        color: "yellow",
+        icon: <IconX size="1.1rem" />,
+        message:
+          "In order to buy an insurance policy, you must log in with your wallet 🥸",
+      });
       return null;
     }
+    setIsLoading(true);
     const accounts = await ethereum.request({
       method: "eth_requestAccounts",
     });
@@ -106,7 +114,7 @@ const FlightInsuranceForm = (props: IProps) => {
       console.log(resUpdate);
 
       notifications.show({
-        autoClose: 5000,
+        autoClose: 7500,
         title: "Policy created and active",
         color: "teal",
         icon: <IconCheck size="1.1rem" />,
@@ -116,14 +124,15 @@ const FlightInsuranceForm = (props: IProps) => {
       setShowFlightDetails(false);
       setIsLoading(false);
       router.push("/user-policies");
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       notifications.show({
-        autoClose: 5000,
+        autoClose: 7500,
         title: "Error while activating the Policy",
         color: "red",
         icon: <IconX size="1.1rem" />,
         message:
+          error.reason ||
           "We were unable to activate the Policy. You can try again later.",
       });
       setShowFlightDetails(false);
@@ -133,15 +142,36 @@ const FlightInsuranceForm = (props: IProps) => {
 
   const approveERC20 = async (event: FormEvent) => {
     event.preventDefault();
+    setIsLoading(true);
     const accounts = await ethereum.request({
       method: "eth_requestAccounts",
     });
     const signer = provider.getSigner(accounts[0]);
     const USDCContract = new ethers.Contract(MUMBAI_USDC, ERC20_ABI, signer);
-    const approveHash = await USDCContract.approve(MUMBAI_INSURANCE, 50, {
-      gasLimit: 320000,
-    });
-    console.log(approveHash);
+    try {
+      const approveHash = await USDCContract.approve(MUMBAI_INSURANCE, 50, {
+        gasLimit: 320000,
+      });
+      notifications.show({
+        autoClose: 7500,
+        title: "You have approved us to charge you USDC",
+        color: "teal",
+        icon: <IconCheck size="1.1rem" />,
+        message:
+          "This is a standard ERC20 approval, now you can buy an insurance policy 😎",
+      });
+      setIsLoading(false);
+    } catch (error: any) {
+      console.log(error);
+      notifications.show({
+        autoClose: 7500,
+        title: "An error occurred",
+        color: "red",
+        icon: <IconX size="1.1rem" />,
+        message: error.reason || "Please try again later 🫣",
+      });
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -211,14 +241,14 @@ const FlightInsuranceForm = (props: IProps) => {
               className={classes.styledInput}
               label="Policy cost"
               onChange={() => null}
-              value="$ 5.00 (DAI)"
+              value="$ 5.00 (USDC)"
               radius="md"
             />
             <TextInput
               className={classes.styledInput}
               label="Covered amount"
               onChange={() => null}
-              value="$ 50.00 (DAI)"
+              value="$ 50.00 (USDC)"
               radius="md"
             />
           </Group>
