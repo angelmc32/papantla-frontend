@@ -18,6 +18,7 @@ export interface PolicyCollectionElement {
       x: string;
       y: string;
     };
+    txHash: string;
     userId: string;
   };
 }

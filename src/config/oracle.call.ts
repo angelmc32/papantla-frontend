@@ -44,7 +44,7 @@ export const execGetAssertionResult = async () => {
   // esta funcion envia el resultado a insurance.handle
   const { receipt } = await contract.call(
     "getAssertionResult",
-    80001, // destination domain - optimism 10
+    80001, // destination domain - optimism 10 ? (AMC): Chain Id is for Mumbai testnet
     "0x0000000000000000000000005837d7635e7E9bf06245A75Ccd00A9a486Dd0b72" // insurance address
   );
   console.log(receipt);
